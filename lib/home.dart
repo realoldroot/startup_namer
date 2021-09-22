@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:startup_namer/store/app_store.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -8,41 +10,37 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> with TickerProviderStateMixin {
   late TabController tabController;
-
   int currentTabIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color.fromARGB(0xff, 0xff, 0xf8, 0xe7),
-      appBar: AppBar(
-        title: Text("首页"),
-        bottom: _buildTabBar(),
-      ),
-      drawer: _buildDrawer(),
-      body: _buildTabBody(),
-    );
+    return Consumer<BoardStore>(
+        builder: (_, store, __) => Scaffold(
+            backgroundColor: Color.fromARGB(0xff, 0xff, 0xf8, 0xe7),
+            appBar: AppBar(
+              title: Text("首页"),
+              bottom: _buildTabBar(store),
+            ),
+            drawer: _buildDrawer(),
+            body: _buildTabBody(store)));
   }
 
   // TabController.length有多少，TabBar的child就要有几个
-  _buildTabBar() {
-    tabController = TabController(initialIndex: 1, length: 7, vsync: this);
+  _buildTabBar(BoardStore store) {
+    tabController =
+        TabController(initialIndex: 0, length: store.boardLength, vsync: this);
     tabController.addListener(() {
       currentTabIndex = tabController.index;
     });
 
-    return TabBar(isScrollable: true, controller: tabController, tabs: [
-      _buildTabBarItem("text1"),
-      _buildTabBarItem("text2"),
-      _buildTabBarItem("text3"),
-      _buildTabBarItem("text4"),
-      _buildTabBarItem("text5"),
-      _buildTabBarItem("text6"),
-      _buildTabBarItem("text7"),
-    ]);
+    return TabBar(
+        isScrollable: true,
+        controller: tabController,
+        tabs:
+            store.boardCategory.map((e) => _buildTabBarItem(e.name)).toList());
   }
 
-  _buildTabBarItem(text) {
+  Container _buildTabBarItem(text) {
     return Container(
       height: 30,
       alignment: Alignment.center,
@@ -53,19 +51,40 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   }
 
   // 每一个TabBarItem对应一个TabBarView
-  _buildTabBody() {
+  _buildTabBody(BoardStore store) {
     return TabBarView(
-      children: [
-        _buildTabBarItem("text1"),
-        _buildTabBarItem("text2"),
-        _buildTabBarItem("text3"),
-        _buildTabBarItem("text4"),
-        _buildTabBarItem("text5"),
-        _buildTabBarItem("text6"),
-        _buildTabBarItem("text7"),
-      ],
+      children: store.boardCategory.map((e) => _buildTabBarView(e)).toList(),
       controller: tabController,
     );
+  }
+
+  Widget _buildTabBarView(BoardCategory board) {
+    return GridView.builder(
+        shrinkWrap: true,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3, childAspectRatio: 1.25),
+        itemCount: board.boardItemList.length,
+        itemBuilder: (context, i) {
+          return _buildBoardItem(board.boardItemList[i]);
+        });
+  }
+
+  Widget _buildBoardItem(BoardItem item) {
+    return Container(
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              child: _getBoardIcon(item),
+            ),
+            Container(padding: EdgeInsets.only(top: 4), child: Text(item.name)),
+          ],
+        ));
+  }
+
+  _getBoardIcon(item) {
+    return Icon(Icons.image);
   }
 
   _buildDrawer() {
