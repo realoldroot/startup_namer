@@ -1,7 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:startup_namer/store/app_store.dart';
+import 'package:sprintf/sprintf.dart';
+
+import 'entity/board.entity.dart';
+import 'store/app_store.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -9,20 +13,25 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> with TickerProviderStateMixin {
+  static const base_url =
+      "http://img4.nga.178.com/ngabbs/nga_classic/f/app/%s.png";
   late TabController tabController;
   int currentTabIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<BoardStore>(
-        builder: (_, store, __) => Scaffold(
-            backgroundColor: Color.fromARGB(0xff, 0xff, 0xf8, 0xe7),
-            appBar: AppBar(
-              title: Text("首页"),
-              bottom: _buildTabBar(store),
-            ),
-            drawer: _buildDrawer(),
-            body: _buildTabBody(store)));
+    print("-----> HomePage build");
+    return Consumer<BoardStore>(builder: (_, store, __) {
+      print("重构 Scaffold");
+      return Scaffold(
+          backgroundColor: Color.fromARGB(0xff, 0xff, 0xf8, 0xe7),
+          appBar: AppBar(
+            title: Text("首页"),
+            bottom: _buildTabBar(store),
+          ),
+          drawer: _buildDrawer(),
+          body: _buildTabBody(store));
+    });
   }
 
   // TabController.length有多少，TabBar的child就要有几个
@@ -58,33 +67,42 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildTabBarView(BoardCategory board) {
+  Widget _buildTabBarView(Board board) {
     return GridView.builder(
-        shrinkWrap: true,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 3, childAspectRatio: 1.25),
-        itemCount: board.boardItemList.length,
+        itemCount: board.content?.length,
         itemBuilder: (context, i) {
-          return _buildBoardItem(board.boardItemList[i]);
+          return _buildBoardItem(board.content?[i]);
         });
   }
 
-  Widget _buildBoardItem(BoardItem item) {
-    return Container(
-        alignment: Alignment.center,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              child: _getBoardIcon(item),
-            ),
-            Container(padding: EdgeInsets.only(top: 4), child: Text(item.name)),
-          ],
-        ));
+  Widget _buildBoardItem(Content? ct) {
+    return InkWell(
+      child: Container(
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                child: _getBoardIcon(ct),
+              ),
+              Container(
+                  padding: EdgeInsets.only(top: 4),
+                  child: Text(ct?.name ?? "")),
+            ],
+          )),
+      onTap: () => print("xxxxxxxx"),
+    );
   }
 
   _getBoardIcon(item) {
-    return Icon(Icons.image);
+    return CachedNetworkImage(
+      width: 48,
+      height: 48,
+      imageUrl: sprintf(base_url, [item.fid.toString()]),
+      placeholder: (_, __) => CircularProgressIndicator(),
+    );
   }
 
   _buildDrawer() {

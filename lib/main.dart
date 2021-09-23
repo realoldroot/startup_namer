@@ -4,17 +4,20 @@ import 'package:startup_namer/home.dart';
 import 'package:startup_namer/store/app_store.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
   AppStore store = AppStore.initial();
-
-  BoardStore boardStore = BoardStore.initial();
-
-  runApp(MultiProvider(
-    providers: [
-      ChangeNotifierProvider.value(value: store),
-      ChangeNotifierProvider.value(value: boardStore),
-    ],
-    child: MyApp(),
-  ));
+  BoardStore? boardStore;
+  loadData().then((value) => {
+        boardStore = BoardStore(value!),
+        runApp(MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: store),
+            ChangeNotifierProvider.value(value: boardStore),
+          ],
+          child: MyApp(),
+        ))
+      });
 }
 
 class MyApp extends StatelessWidget {
