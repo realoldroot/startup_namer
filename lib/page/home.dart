@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sprintf/sprintf.dart';
 
-import 'entity/board.entity.dart';
-import 'store/app_store.dart';
+import '../page/topic_title.dart';
+import '../model/entity/board.entity.dart';
+import '../store/app_store.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -16,28 +17,28 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   static const base_url =
       "http://img4.nga.178.com/ngabbs/nga_classic/f/app/%s.png";
   late TabController tabController;
+  late BoardStore _boardStore;
   int currentTabIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    print("-----> HomePage build");
     return Consumer<BoardStore>(builder: (_, store, __) {
-      print("重构 Scaffold");
+      _boardStore = store;
       return Scaffold(
           backgroundColor: Color.fromARGB(0xff, 0xff, 0xf8, 0xe7),
           appBar: AppBar(
             title: Text("首页"),
-            bottom: _buildTabBar(store),
+            bottom: _buildTabBar(),
           ),
           drawer: _buildDrawer(),
-          body: _buildTabBody(store));
+          body: _buildTabBody());
     });
   }
 
   // TabController.length有多少，TabBar的child就要有几个
-  _buildTabBar(BoardStore store) {
-    tabController =
-        TabController(initialIndex: 0, length: store.boardLength, vsync: this);
+  _buildTabBar() {
+    tabController = TabController(
+        initialIndex: 0, length: _boardStore.boardLength, vsync: this);
     tabController.addListener(() {
       currentTabIndex = tabController.index;
     });
@@ -45,8 +46,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     return TabBar(
         isScrollable: true,
         controller: tabController,
-        tabs:
-            store.boardCategory.map((e) => _buildTabBarItem(e.name)).toList());
+        tabs: _boardStore.boardCategoryList
+            .map((e) => _buildTabBarItem(e.name))
+            .toList());
   }
 
   Container _buildTabBarItem(text) {
@@ -60,24 +62,26 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   }
 
   // 每一个TabBarItem对应一个TabBarView
-  _buildTabBody(BoardStore store) {
+  _buildTabBody() {
     return TabBarView(
-      children: store.boardCategory.map((e) => _buildTabBarView(e)).toList(),
+      children: _boardStore.boardCategoryList
+          .map((e) => _buildTabBarView(e))
+          .toList(),
       controller: tabController,
     );
   }
 
-  Widget _buildTabBarView(Board board) {
+  Widget _buildTabBarView(BoardCategory board) {
     return GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 3, childAspectRatio: 1.25),
-        itemCount: board.content?.length,
+        itemCount: board.content.length,
         itemBuilder: (context, i) {
-          return _buildBoardItem(board.content?[i]);
+          return _buildBoardItem(board.content[i]);
         });
   }
 
-  Widget _buildBoardItem(Content? ct) {
+  Widget _buildBoardItem(BoardItem ct) {
     return InkWell(
       child: Container(
           alignment: Alignment.center,
@@ -87,13 +91,16 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               Container(
                 child: _getBoardIcon(ct),
               ),
-              Container(
-                  padding: EdgeInsets.only(top: 4),
-                  child: Text(ct?.name ?? "")),
+              Container(padding: EdgeInsets.only(top: 4), child: Text(ct.name)),
             ],
           )),
-      onTap: () => print("xxxxxxxx"),
+      onTap: () => _openTopicListPage(ct),
     );
+  }
+
+  _openTopicListPage(BoardItem item) {
+    Navigator.push(
+        context, MaterialPageRoute(builder: (build) => TopicTitle(item)));
   }
 
   _getBoardIcon(item) {
@@ -101,7 +108,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       width: 48,
       height: 48,
       imageUrl: sprintf(base_url, [item.fid.toString()]),
-      placeholder: (_, __) => CircularProgressIndicator(),
+      placeholder: (_, __) => CircularProgressIndicator(), //显示一个圆圈进度
     );
   }
 

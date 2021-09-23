@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:startup_namer/home.dart';
-import 'package:startup_namer/store/app_store.dart';
+import '../page/home.dart';
+import '../store/app_store.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -9,7 +9,7 @@ void main() {
   AppStore store = AppStore.initial();
   BoardStore? boardStore;
   loadData().then((value) => {
-        boardStore = BoardStore(value!),
+        boardStore = BoardStore(value),
         runApp(MultiProvider(
           providers: [
             ChangeNotifierProvider.value(value: store),

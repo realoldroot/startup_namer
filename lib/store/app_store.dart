@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:startup_namer/entity/board.entity.dart';
+
+import '../model/entity/board.entity.dart';
 
 class AppStore with ChangeNotifier {
   AppStore();
@@ -12,23 +13,37 @@ class AppStore with ChangeNotifier {
 }
 
 class BoardStore with ChangeNotifier {
-  late List<Board> _boardCategory;
+  late List<BoardCategory> _boardCategoryList;
 
-  List<Board> get boardCategory => _boardCategory;
+  List<BoardCategory> get boardCategoryList => _boardCategoryList;
 
-  int get boardLength => _boardCategory.length;
+  int get boardLength => _boardCategoryList.length;
+
+  late BoardCategory _collection;
+
+  BoardCategory get collection => _collection;
 
   BoardStore(String loadString) {
-    print(loadString);
     List list = json.decode(loadString);
-    this._boardCategory = list.map((e) => Board.fromJson(e)).toList();
+    this._boardCategoryList =
+        list.map((e) => BoardCategory.fromJson(e)).toList();
+    this._collection = BoardCategory(name: "我的收藏", content: []);
   }
 
-  void favorite() {
-    print("-----> favorite");
+  void favorite(BoardItem boardItem) {
+    if (_collection.content.contains(boardItem)) {
+      _collection.content.remove(boardItem);
+    } else {
+      _collection.content.add(boardItem);
+    }
+    notifyListeners();
+  }
+
+  bool isFavorite(BoardItem boardItem) {
+    return _collection.content.contains(boardItem);
   }
 }
 
-Future<String?> loadData() async {
+Future<String> loadData() async {
   return await rootBundle.loadString("assets/data/category.json");
 }
