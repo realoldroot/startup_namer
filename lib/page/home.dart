@@ -100,7 +100,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   _openTopicListPage(BoardItem item) {
     Navigator.push(
-        context, MaterialPageRoute(builder: (build) => TopicTitle(item)));
+        context, MaterialPageRoute(builder: (build) => TopicTitlePage(item)));
   }
 
   _getBoardIcon(item) {
