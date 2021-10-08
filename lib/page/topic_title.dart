@@ -65,6 +65,11 @@ class TopicTitlePage extends StatelessWidget {
 class _TopicTitleContainer extends StatelessWidget {
   _TopicTitleContainer(BoardItem boardItem, ScrollController scrollController);
 
+  Widget divider1 = Divider(
+    color: Colors.blue,
+  );
+  Widget divider2 = Divider(color: Colors.green);
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<TopicTitle>>(
@@ -79,11 +84,12 @@ class _TopicTitleContainer extends StatelessWidget {
     }
     if (snapshot.data != null) {
       var data = snapshot.data;
-      return ListView.builder(
-          itemCount: data?.length,
-          itemBuilder: (BuildContext context, int index) => ListTile(
-                title: Text(data?[index].subject ?? ""),
-              ));
+      return ListView.separated(
+          separatorBuilder: (context, index) =>
+              index % 2 == 0 ? divider1 : divider2,
+          itemCount: data?.length ?? 10,
+          itemBuilder: (BuildContext context, int index) =>
+              _buildTopicListItem(context, data![index]));
     }
     switch (snapshot.connectionState) {
       case ConnectionState.none:
@@ -103,5 +109,34 @@ class _TopicTitleContainer extends StatelessWidget {
     var decode = json.decode(value);
     var resp = TopicListResponseEntity.fromJson(decode);
     return resp.result.t;
+  }
+
+  Widget _buildTopicListItem(BuildContext context, TopicTitle topicTitle) {
+    return InkWell(
+      onTap: () => {},
+      child: Container(
+        padding: EdgeInsets.all(10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: EdgeInsets.only(bottom: 16),
+              child: Text(topicTitle.subject ?? ""),
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Icon(Icons.person),
+                Text(topicTitle.author ?? ""),
+                Spacer(),
+                Icon(Icons.reply, textDirection: TextDirection.rtl),
+                Text(topicTitle.lastposter ?? ""),
+                Text(topicTitle.replies.toString()),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
